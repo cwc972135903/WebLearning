@@ -1,9 +1,13 @@
 package com.learning.demo.controller;
 
 import com.learning.demo.service.AsyncService;
+import com.learning.demo.util.ThreadLocalUtil.InheritableThreadLocalUtil;
+import com.learning.demo.util.ThreadLocalUtil.ThreadLocalUtil;
+import com.learning.demo.util.ThreadLocalUtil.TransmittableThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -32,9 +37,13 @@ public class ThreadController {
     @Autowired
     private AsyncService asyncService;
 
+//    @Qualifier("taskExecutor")
+//    @Autowired
+//    private TaskExecutor taskExecutor;
+
     @Qualifier("taskExecutor")
     @Autowired
-    private TaskExecutor taskExecutor;
+    private Executor taskExecutor;
 
     @GetMapping("/thread")
     public void thread() {
@@ -70,6 +79,31 @@ public class ThreadController {
             }
         }
 
+    }
+
+    @GetMapping("/tl1")
+    public Object threadLocalTest1(){
+        ThreadLocalUtil.THREAD_LOCAL.set(Thread.currentThread().getName());
+        System.out.println("当前运行是的默认TL的线程（控制器）：" + Thread.currentThread().getName()+":TL:" + ThreadLocalUtil.THREAD_LOCAL.get());
+        String s = asyncService.executeDefault();
+        return s;
+    }
+
+    @GetMapping("/tl2/{value}")
+    public Object threadLocalTest2(@PathVariable("value") String value) throws InterruptedException {
+        //InheritableThreadLocalUtil.THREAD_LOCAL.set(value);
+        TransmittableThreadLocalUtil.THREAD_LOCAL.set(value);
+        System.out.println("当前运行是的异步TL的线程-控制器：" + Thread.currentThread().getName()+":TL:" + value);
+        String s = asyncService.executeAsyncTL();
+        return s;
+    }
+
+    @GetMapping("/tl3")
+    public Object threadLocalTest3() throws ExecutionException, InterruptedException {
+        ThreadLocalUtil.THREAD_LOCAL.set("tl3");
+        Future<String> stringFuture = asyncService.executeAsyncResultTL();
+        String s = stringFuture.get();
+        return s;
     }
 
 }

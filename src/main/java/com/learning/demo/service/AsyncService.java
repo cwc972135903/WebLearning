@@ -16,7 +16,7 @@ import java.util.concurrent.Future;
  */
 public interface AsyncService {
     /**
-     * 异步线程池执行任务
+     * 同步线程池执行任务
      * @return
      */
     Future<String> executeAsyncResult();
@@ -26,4 +26,22 @@ public interface AsyncService {
      * @return
      */
     String executeAsync();
+
+    /**
+     * 同步线程池执行任务--测试ThreadLocal
+     * @return
+     */
+    Future<String> executeAsyncResultTL() throws InterruptedException;
+
+    /**
+     * 异步线程池执行任务--测试ThreadLocal
+     * @return
+     */
+    String executeAsyncTL() throws InterruptedException;
+
+    /**
+     * 默认的同步执行
+     * @return
+     */
+    String executeDefault();
 }

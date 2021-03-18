@@ -1,11 +1,13 @@
 package com.learning.demo.config;
 
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -26,19 +28,19 @@ public class ThreadPoolConfig {
      *   每秒需要多少个线程处理?
      *   tasks/(1/taskcost)
      */
-    private int corePoolSize = 1;
+    private int corePoolSize = 3;
 
     /**
      * 线程池维护线程的最大数量
      * (max(tasks)- queueCapacity)/(1/taskcost)
      */
-    private int maxPoolSize = 3;
+    private int maxPoolSize = 10;
 
     /**
      * 缓存队列
      * (coreSizePool/taskcost)*responsetime
      */
-    private int queueCapacity = 10;
+    private int queueCapacity = 5;
 
     /**
      * 允许的空闲时间
@@ -47,7 +49,7 @@ public class ThreadPoolConfig {
     private int keepAlive = 100;
 
     @Bean
-    public TaskExecutor taskExecutor() {
+    public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         // 设置核心线程数
         executor.setCorePoolSize(corePoolSize);
@@ -64,6 +66,8 @@ public class ThreadPoolConfig {
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         // 等待所有任务结束后再关闭线程池
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        return executor;
+        executor.initialize();
+        return TtlExecutors.getTtlExecutor(executor);
+       // return executor;
     }
 }
